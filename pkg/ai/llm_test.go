@@ -8,7 +8,7 @@ import (
 	"github.com/tmc/langchaingo/llms/openai"
 )
 
-func TestAnalyzePR(t *testing.T) {
+func setupAIAnalyzer(t *testing.T) AIAnalyzer {
 	llm, err := openai.New(
 		openai.WithModel("gpt-5"),
 		openai.WithToken(os.Getenv("OPENAI_API_KEY")),
@@ -17,41 +17,43 @@ func TestAnalyzePR(t *testing.T) {
 		t.Fatalf("failed to create OpenAI LLM: %v", err)
 	}
 
-	analyzer := NewAIAnalyzer(llm)
+	return NewAIAnalyzer(llm)
+}
 
-	testcases := []struct {
-		name string
-		req  *AnalyzePRRequest
-	}{
-		{
-			name: "Quick Summary",
-			req: &AnalyzePRRequest{
-				Owner:  "argoproj",
-				Repo:   "argo-cd",
-				Number: 7539,
-				Mode:   PromptModeQuickSummary,
-			},
-		},
-		{
-			name: "Deep Analysis",
-			req: &AnalyzePRRequest{
-				Owner:  "argoproj",
-				Repo:   "argo-cd",
-				Number: 7539,
-				Mode:   PromptModeDeepAnalysis,
-			},
-		},
+func TestAnalyzePRQuickSummary(t *testing.T) {
+	analyzer := setupAIAnalyzer(t)
+
+	req := &AnalyzePRRequest{
+		Owner:  "argoproj",
+		Repo:   "argo-cd",
+		Number: 7539,
+		Mode:   PromptModeQuickSummary,
 	}
 
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			result, err := analyzer.AnalyzePR(context.Background(), tc.req)
-			if err != nil {
-				t.Fatalf("AnalyzePR failed: %v", err)
-			}
-
-			t.Logf("Analyze Mode: %s", tc.req.Mode)
-			t.Logf("AnalyzePR result: %s", result)
-		})
+	result, err := analyzer.AnalyzePR(context.Background(), req)
+	if err != nil {
+		t.Fatalf("AnalyzePR failed: %v", err)
 	}
+
+	t.Logf("Analyze Mode: %s", req.Mode)
+	t.Logf("AnalyzePR result: %s", result)
+}
+
+func TestAnalyzePRDeepAnalysis(t *testing.T) {
+	analyzer := setupAIAnalyzer(t)
+
+	req := &AnalyzePRRequest{
+		Owner:  "argoproj",
+		Repo:   "argo-cd",
+		Number: 7539,
+		Mode:   PromptModeDeepAnalysis,
+	}
+
+	result, err := analyzer.AnalyzePR(context.Background(), req)
+	if err != nil {
+		t.Fatalf("AnalyzePR failed: %v", err)
+	}
+
+	t.Logf("Analyze Mode: %s", req.Mode)
+	t.Logf("AnalyzePR result: %s", result)
 }
